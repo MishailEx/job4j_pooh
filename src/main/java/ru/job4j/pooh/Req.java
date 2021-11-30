@@ -21,7 +21,7 @@ public class Req {
         String poohMode = "";
         String sourceName = "";
         String param = "";
-        String[] str = content.split("\\s\\n");
+        String[] str = content.split("\\s\\n|\\n[0]");
         if (str.length != 0) {
             if (str[0].contains("POST") || str[0].contains("GET")) {
                 String[] pars = str[0].split("(\\s/)|/|\\s");
@@ -53,18 +53,5 @@ public class Req {
 
     public String getParam() {
         return param;
-    }
-
-    public static void main(String[] args) {
-        String ls = System.lineSeparator();
-        String s =  "GET /topic/weather/client407 HTTP/1.1" + ls
-                + "Host: localhost:9000" + ls
-                + "User-Agent: curl/7.72.0" + ls
-                + "Accept: */*" + ls + ls + ls;
-        String[] str = s.split("\\s\\n");
-        String[] str2 = str[0].split("(\\s/)|/|\\s");
-        System.out.println(Arrays.toString(str));
-        System.out.println(Arrays.toString(str2));
-        System.out.println(str2.length);
     }
 }
