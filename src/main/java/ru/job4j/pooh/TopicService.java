@@ -12,27 +12,32 @@ public class TopicService implements Service {
     @Override
     public Resp process(Req req) {
         String status = "";
-        Resp resp = null;
+        Resp resp;
         if (POST.equals(req.httpRequestType())) {
             if (topics.get(req.getSourceName()) != null) {
-                for (ConcurrentLinkedQueue<String> queue: topics.get(req.getSourceName()).values()) {
+                for (ConcurrentLinkedQueue<String> queue : topics.get(req.getSourceName()).values()) {
                     queue.add(req.getParam());
                 }
             }
         }
         if (GET.equals(req.httpRequestType())) {
-            status = topics.putIfAbsent(req.getSourceName(),
-                    new ConcurrentHashMap<>()) == null ? "204" : "202";
-            if (status.equals("202")) {
-                if (topics.get(req.getSourceName()).get(req.getParam()) != null) {
-                    return new Resp(topics.get(req.getSourceName()).get(req.getParam()).poll(), status);
+            if (topics.containsKey(req.getSourceName())) {
+                if (topics.get(req.getSourceName()).containsKey(req.getParam())) {
+                    if (!topics.get(req.getSourceName()).get(req.getParam()).isEmpty()) {
+                        return new Resp(topics.get(req.getSourceName()).get(req.getParam()).poll(), "200");
+                    } else {
+                        status = "204";
+                    }
+                } else {
+                    topics.get(req.getSourceName()).put(req.getParam(), new ConcurrentLinkedQueue<>());
+                    status = "204";
                 }
             } else {
+                topics.put(req.getSourceName(), new ConcurrentHashMap<>());
                 topics.get(req.getSourceName()).put(req.getParam(), new ConcurrentLinkedQueue<>());
-                status = "201";
             }
-            resp = new Resp("", status);
         }
+        resp = new Resp("", status);
         return resp;
     }
 }
