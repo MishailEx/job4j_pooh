@@ -1,6 +1,8 @@
 package ru.job4j.pooh;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class Req {
 
@@ -21,19 +23,27 @@ public class Req {
         String poohMode = "";
         String sourceName = "";
         String param = "";
-        String[] str = content.split("\\s\\n|\\n[0]");
-        if (str.length != 0) {
-            if (str[0].contains("POST") || str[0].contains("GET")) {
-                String[] pars = str[0].split("(\\s/)|/|\\s");
+        Scanner scan = new Scanner(content);
+        List<String> array = new ArrayList<>();
+        while (scan.hasNextLine()) {
+            String str = scan.nextLine();
+            if (!str.isEmpty()) {
+                array.add(str);
+            }
+        }
+        if (array.size() > 0) {
+            if (array.get(0).contains("POST") || array.get(0).contains("GET")) {
+                String[] pars = array.get(0).split("(\\s/)|/|\\s");
                 httpRequestType = pars[0];
                 poohMode = pars[1];
                 sourceName = pars[2];
-                if (pars.length == 6) {
-                    param = pars[3];
+                if (array.get(0).contains("GET")) {
+                    if (pars.length == 6) {
+                        param = pars[3];
+                    }
+                } else {
+                    param = array.get(array.size() - 1);
                 }
-            }
-            if (str[str.length - 1].contains("temperature")) {
-                param = str[str.length - 1];
             }
         }
         return new Req(httpRequestType, poohMode, sourceName, param);
