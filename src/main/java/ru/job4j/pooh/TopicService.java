@@ -11,25 +11,22 @@ public class TopicService implements Service {
 
     @Override
     public Resp process(Req req) {
-        String status = "204";
-        Resp resp;
+        Resp resp = new Resp("", "204");
+        ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> hashMap = topics.get(req.getSourceName());
         if (POST.equals(req.httpRequestType())) {
-            if (topics.get(req.getSourceName()) != null) {
-                for (ConcurrentLinkedQueue<String> queue : topics.get(req.getSourceName()).values()) {
+            if (hashMap != null) {
+                for (ConcurrentLinkedQueue<String> queue : hashMap.values()) {
                     queue.add(req.getParam());
                 }
             }
         } else if (GET.equals(req.httpRequestType())) {
-            var map = topics.putIfAbsent(req.getSourceName(), new ConcurrentHashMap<>());
-            if (map != null && map.containsKey(req.getParam())) {
-                if (!map.get(req.getParam()).isEmpty()) {
-                    return new Resp(topics.get(req.getSourceName()).get(req.getParam()).poll(), "200");
-                }
-            } else {
-                topics.get(req.getSourceName()).put(req.getParam(), new ConcurrentLinkedQueue<>());
+            topics.putIfAbsent(req.getSourceName(), new ConcurrentHashMap<>());
+            topics.get(req.getSourceName()).putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>());
+            String answer = topics.get(req.getSourceName()).get(req.getParam()).poll();
+            if (answer != null) {
+                return new Resp(answer, "200");
             }
         }
-        resp = new Resp("", status);
         return resp;
     }
 }
